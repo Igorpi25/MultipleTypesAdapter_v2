@@ -126,7 +126,7 @@ public class Connection {
         	@Override
 			public void onResponse(String response) {
 
-            	Log.d(TAG, "doRequestToServer onResponse response="+response);
+            	Log.d(TAG, "doRequestToServer onResponse response=");
             	
             	listener.isCompleted();
             }

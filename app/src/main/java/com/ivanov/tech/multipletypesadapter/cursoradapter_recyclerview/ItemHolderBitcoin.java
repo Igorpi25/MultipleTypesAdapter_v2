@@ -68,8 +68,8 @@ public class ItemHolderBitcoin extends CursorItemHolder{
 			Log.d(TAG, "bindView json="+json);
 						
 			textview_name.setText(json.getString("name"));
-			textview_name.setText(json.getString("symbol"));
-			textview_name.setText(json.getString("website_slug"));
+			textview_symbol.setText(json.getString("symbol"));
+			textview_website_slug.setText(json.getString("website_slug"));
 
 			itemView.setTag(itemView.getId(), CursorMultipleTypesAdapter.getKey(cursor));
 									

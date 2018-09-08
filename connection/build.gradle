@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 27
@@ -6,8 +6,8 @@ android {
     compileOptions.encoding = 'ISO-8859-1'
 
     defaultConfig {
-        applicationId "com.ivanov.tech.connection"
-        minSdkVersion 14
+        //applicationId "com.ivanov.tech.connection"
+        minSdkVersion 18
         targetSdkVersion 27
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_7
