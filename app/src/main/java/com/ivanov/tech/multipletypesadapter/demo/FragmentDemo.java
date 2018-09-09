@@ -1,377 +1,257 @@
 package com.ivanov.tech.multipletypesadapter.demo;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorMultipleTypesAdapter;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.ivanov.tech.connection.Connection;
+import com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview.CursorMultipleTypesAdapter;
+import com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview.ItemHolderBitcoin;
 import com.ivanov.tech.multipletypesadapter.R;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderImageView;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderButton;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderGridView;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderHeader;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderLink;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderText;
 
-import android.database.Cursor;
+import android.content.Context;
+
+import android.content.DialogInterface;
 import android.database.MatrixCursor;
-import android.database.MergeCursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ListView;
+import android.view.Window;
 import android.widget.Toast;
 
-public class FragmentDemo extends DialogFragment implements OnItemClickListener,OnClickListener{
+public class FragmentDemo extends DialogFragment implements OnClickListener{
 	
-	private static final String TAG = FragmentDemo.class.getSimpleName();    
-    
-	
-	//По константе переданной в getType, адаптер определяет ItemHolder, который должен его обработать
-	//Также используются в для обработки callback событий, приходящих от адаптера 
-    protected static final int TYPE_LINK_USER = 0;
-    protected static final int TYPE_LINK_USER_GIT = 1;
-    protected static final int TYPE_LINK_USER_NOT_CLICKABLE = 2;
-    
-    protected static final int TYPE_LINK_GROUP =3;
-    
-    protected static final int TYPE_TEXT =4;
-    protected static final int TYPE_TEXT_CLICKABLE =5;
-    protected static final int TYPE_TEXT_UPLOADER =6;
-    
-    protected static final int TYPE_HEADER =7;
-    
-    protected static final int TYPE_BUTTON =8;  
-    protected static final int TYPE_BUTTON_SMALL =9;  
-    
-    protected static final int TYPE_AVATAR =10;
-    protected static final int TYPE_PREVIEW =11;
-    protected static final int TYPE_GRIDVIEW =12;
-	
+	private static final String TAG = FragmentDemo.class.getSimpleName();
 
-    protected ListView listview;
+	String url="https://api.coinmarketcap.com/v2/listings/";
+	
+	protected static final int TYPE_ITEM_BITCOIN = 0;
+
+	RecyclerView recyclerview;
     
     protected CursorMultipleTypesAdapter adapter=null;
-    
+
+	MenuItem menu_reload;
     
     public static FragmentDemo newInstance() {
-    	FragmentDemo f = new FragmentDemo();        
+    	FragmentDemo f = new FragmentDemo();
        
         return f;
     }
-    
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = null;
+    	
+    	View view = null;
         view = inflater.inflate(R.layout.fragment_demo, container, false);
-                
-        Log.d(TAG,"onCreateView");
         
-        listview=(ListView)view.findViewById(R.id.fragment_demo_listview);
-        
-        adapter=new CursorMultipleTypesAdapter(getActivity(),null,adapter.FLAG_AUTO_REQUERY);
-        
+        recyclerview=(RecyclerView)view.findViewById(R.id.fragment_demo_rv_recyclerview);
+
+		LinearLayoutManager layoutmanager=new LinearLayoutManager(recyclerview.getContext());
+		layoutmanager.setInitialPrefetchItemCount(100);
+		layoutmanager.setItemPrefetchEnabled(true);
+
+        recyclerview.setLayoutManager(layoutmanager);
+
+		recyclerview.setHasFixedSize(true);
+
+        adapter=new CursorMultipleTypesAdapter(getActivity(),null);
+      
         //Prepare map of types and set listeners for them. There are different ways in which you can define ItemHolder      
-        adapter.addItemHolder(TYPE_LINK_USER, new CursorItemHolderLink(getActivity(),this,this));                
-        adapter.addItemHolder(TYPE_LINK_USER_GIT, new CursorItemHolderLink(getActivity(),this,new OnClickListener(){
+        adapter.addItemHolder(TYPE_ITEM_BITCOIN, new ItemHolderBitcoin(getActivity(),this));
+		adapter.setHasStableIds(true);
 
-			@Override
-			public void onClick(View v) {
-				toast("GIT CLICKED!");
-			}
-        	
-        }));
-        adapter.addItemHolder(TYPE_LINK_USER_NOT_CLICKABLE, new CursorItemHolderLink(getActivity(),this,this){
-        	
-        	@Override
-        	public boolean isEnabled() {
-        		return false;
-        	}
-        });
-        
-        adapter.addItemHolder(TYPE_LINK_GROUP, new CursorItemHolderLink(getActivity(),this,null));
-        adapter.addItemHolder(TYPE_TEXT, new CursorItemHolderText(getActivity(),this));
-        adapter.addItemHolder(TYPE_TEXT_CLICKABLE, new CursorItemHolderText(getActivity(),this){
-        	@Override
-        	public boolean isEnabled() {
-        		return true;
-        	}
-        });
-        adapter.addItemHolder(TYPE_TEXT_UPLOADER, new CursorItemHolderText(getActivity(),this){
-        	@Override
-        	public boolean isEnabled() {
-        		return true;
-        	}
-        });
-        
-        adapter.addItemHolder(TYPE_HEADER, new CursorItemHolderHeader(getActivity(),this));
-        
-        adapter.addItemHolder(TYPE_BUTTON, new CursorItemHolderButton(getActivity(),this));
-        adapter.addItemHolder(TYPE_BUTTON_SMALL, new CursorItemHolderButton(getActivity(),R.layout.details_item_button_small,R.id.details_item_button_small_button,this));
-        
-        adapter.addItemHolder(TYPE_AVATAR, new CursorItemHolderImageView(getActivity(),R.layout.details_item_avatar,R.id.details_item_avatar_imageview,this));
-        adapter.addItemHolder(TYPE_PREVIEW, new CursorItemHolderImageView(getActivity(),R.layout.details_item_preview,R.id.details_item_preview_imageview,this));
-        
-        adapter.addItemHolder(TYPE_GRIDVIEW, new CursorItemHolderGridView(getActivity(),getGridViewCursor(),new OnItemClickListener(){
+        recyclerview.setAdapter(adapter);
 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				
-				//You should define callback-listeners like so on
-				toast("TYPE_GRIDVIEW position="+position+" key="+id);				
-			}
-        	
-        }));
-        
-        
-        
-        listview.setAdapter(adapter);
-        
-        listview.setOnItemClickListener(adapter);
-        
-        adapter.changeCursor(createMergeCursor());
-        
+		setHasOptionsMenu(true);
+		((AppCompatActivity) getActivity()).getSupportActionBar().show();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			//getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+			getActivity().getWindow().setStatusBarColor(getActivity().getColor(R.color.color_primary_dark));
+		}
+
         return view;
     }
-    
+
+    @Override
+	public void onStart(){
+    	super.onStart();
+
+		downloadListing();
+
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.menu_demo, menu);
+
+		menu_reload = menu.findItem(R.id.menu_reload);
+
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// handle item selection
+		switch (item.getItemId()) {
+			case R.id.menu_reload:
+
+				downloadListing();
+
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+
+
+
+		try {
+
+			adapter.getCursor().moveToPosition((Integer)v.getTag(v.getId()));
+
+			JSONObject json=new JSONObject(CursorMultipleTypesAdapter.getValue(adapter.getCursor()));
+
+			showDialogDetails(json);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+
+	}
+
 //------------Preparing cursor----------------------------
-	
-    //Merge cursor for testing the huge number of items
-	protected Cursor createMergeCursor(){
-    	
-    	List<Cursor> cursors_list=new ArrayList<Cursor>();	
-    	
-    	int _id=1;
-    	try{
-    	//You can test with huge number of items. Just set i=100
-    	for(int i=0;i<1;i++){
-	    		cursors_list.add(getCursorForAdapter(_id));
-    	}
-    	}catch(JSONException e){
-    		Log.e(TAG, "createMergeCursor JSONException e="+e);
-    	}
-    	
-    	Cursor[] cursors_array=new Cursor[cursors_list.size()];
-    	MergeCursor mergecursor=new MergeCursor(cursors_list.toArray(cursors_array));
-    	
-    	return mergecursor;    	
-    }
-    
-	
-    protected MatrixCursor getCursorForAdapter(int _id) throws JSONException{
+
+    protected MatrixCursor getCursorForAdapter(JSONArray data) throws JSONException{
 
     	MatrixCursor matrixcursor=new MatrixCursor(new String[]{adapter.COLUMN_ID, adapter.COLUMN_TYPE, adapter.COLUMN_KEY, adapter.COLUMN_VALUE});    	
     	
     	JSONObject json;    	
 
-//-------------------------- ItemHolder Header ---------------------------------
-    	    	
-    	json=new JSONObject("{key:{visible:false}, value:{visible:false}, label:{text:'com.ivanov.tech.multipletypesadapter.demo'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	
-//-------------------------- ItemHolder Link ---------------------------------
-    	      
-    	json=new JSONObject("{key:{text:'Contacts'}, value:{visible:false}, label:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	
-    	json=new JSONObject("{ name:{text:'Igor Ivanov'}, status:{text:'Android Developer'}, label:{ visible:false }, button:{visible:true, tag:'link_user_button', text:'Accept'}, icon:{image_url:'https://pp.vk.me/c616830/v616830795/1121c/AwzilQ3NWLs.jpg'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_LINK_USER,11,json.toString()});
-        
-    	json=new JSONObject("{name:{text:'Stepan Sotnikov'}, status:{text:'Server Admin'}, label:{ visible:true, text:'(new)' }, button:{tag:'link_user_button', text:'Accept', background: "+R.drawable.drawable_button_dialog_positive+", text_color: "+R.color.color_white+"}, icon:{image_url:'https://pp.vk.me/c316130/u3906727/d_80cd5ad1.jpg'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_LINK_USER,12,json.toString()});
-        
-    	json=new JSONObject("{name:{text:'GitHub'}, status:{text:'Dynamic type'}, label:{ visible:false }, button:{tag:'link_user_button', text:'Fork', background: "+R.drawable.drawable_button_dialog_positive+", text_color: "+R.color.color_white+"}, icon:{image_url:'https://cdn0.iconfinder.com/data/icons/octicons/1024/mark-github-128.png'} }");
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_LINK_USER_GIT,13,json.toString()});
-        
-    	json=new JSONObject("{name:{text:'User'}, status:{text:'Default icon'}, label:{ visible:false }, button:{visible:false}, icon:{ } }");
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_LINK_USER_NOT_CLICKABLE,14,json.toString()});
-        
-    	json=new JSONObject("{name:{text:'Space 66'}, status:{visible: false}, label:{text:'Group link', text_color:'"+R.color.color_green+"'}, button:{visible:false}, icon:{image_url:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO6MFvj2tMPUoOSbUnbHFFuSqSMEkBt0Y17oPpcH8h2vpZG5S'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_LINK_GROUP,21,json.toString()});
+    	//---------Card Preview ------------
 
-//-------------------------- ItemHolder Text ---------------------------------
-    	
-    	json=new JSONObject("{key:{text:'Text'}, value:{visible:false}, label:{visible:false} } ");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	
-    	json=new JSONObject("{key:{text:'email'}, value:{text:'igorpi25@gmail.com'}, icon:{ } }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_TEXT_CLICKABLE,31,json.toString()});
-    	
-    	json=new JSONObject("{key:{text:'phone'}, value:{text:'+79142966292'}, icon:{ } }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_TEXT_CLICKABLE,32,json.toString()});
-    	
-    	json=new JSONObject("{key:{ visible:false }, value:{text:'Not clickable, and no icon'}, icon:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_TEXT,33,json.toString()});
-    	
-    	json=new JSONObject("{value:{text:'but clickable'}, key:{text:'No icon'}, icon:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_TEXT_CLICKABLE,34,json.toString()});
-    	
-    	json=new JSONObject("{value:{text:'Upload photo'}, key:{ visible:false }, icon:{image_res:'"+android.R.drawable.ic_menu_upload+"'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_TEXT_UPLOADER,35,json.toString()});
 
-//-------------------------- ItemHolder Button ---------------------------------
-    	    	    	
-    	json=new JSONObject("{key:{text:'Buttons'}, value:{visible:false}, label:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	
-    	json=new JSONObject("{button:{tag:'button_normal', text:'asds', text_size: '36'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_BUTTON,41,json.toString()});
-             	
-    	json=new JSONObject("{tag:'button_negative', text:'Negative button' }");
-    	json.put("background", R.drawable.drawable_button_dialog_negative);
-    	json.put("text_color", R.color.color_white);
-    	json.put("text_size_unit", TypedValue.COMPLEX_UNIT_SP);
-    	json.put("text_size", 14.0f);
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_BUTTON,42,"{button: "+json.toString()+" }"});
-    	
-    	json=new JSONObject("{button:{tag:'link_user_button', text:'Add', background: "+R.drawable.drawable_button_dialog_alter+", text_color: "+R.color.color_white+"} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_BUTTON_SMALL,43,json.toString()});
-        
-//----------------------- ItemHolder ImageView ----------------------------------
-    	
-    	json=new JSONObject("{key:{text:'Images'}, value:{visible:false}, label:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	    	
-    	json=new JSONObject("{ imageview:{image_url:'http://eyakutia.com/wp-content/uploads/2012/04/yakutianhorserider_01.jpg'} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_PREVIEW,102,json.toString()});
+		for(int i=0;i<data.length();i++) {
+			json=data.getJSONObject(i);
+			matrixcursor.addRow(new Object[]{i, TYPE_ITEM_BITCOIN, i, json.toString()});
+		}
 
-//-------------------------- ItemHolder GridView ---------------------------------
+		return matrixcursor;
     	
-    	json=new JSONObject("{key:{text:'Nested adapter'}, value:{visible:false}, label:{visible:false} }");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_HEADER,0,json.toString()});
-    	
-    	json=new JSONObject("{visible:true}");    	
-    	matrixcursor.addRow(new Object[]{++_id,TYPE_GRIDVIEW,0,json.toString()});  
-    	
-    	return matrixcursor;
     }
-    
-    //Используется как cursor для вложенного адаптера TYPE_GRIDVIEW
-    protected MatrixCursor getGridViewCursor(){
 
-    	MatrixCursor matrixcursor=new MatrixCursor(new String[]{adapter.COLUMN_ID, adapter.COLUMN_TYPE, adapter.COLUMN_KEY, adapter.COLUMN_VALUE});
-    	
-    	try{
-    		
-	    	int _id=0;
-	    	
-	    	JSONObject json;
-	    	//This adapter can use TYPE_GRIDVIEW-type only. This is inside type of CursorItemHolderGridView-adapter
-	    	
-	  //-------------------------- ItemHolder LinkVertical ---------------------------------
-	    	
-	    	json=new JSONObject("{ name:{text:'Igor Ivanov'}, icon:{image_url:'https://pp.vk.me/c616830/v616830795/1121c/AwzilQ3NWLs.jpg', label:{visible:false}} }");    	
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,11,json.toString()});
-	        
-	    	json=new JSONObject("{name:{text:'Stepan Sotnikov'}, icon:{image_url:'https://pp.vk.me/c316130/u3906727/d_80cd5ad1.jpg'}, label:{visible:false} }");    	
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,12,json.toString()});
-	        
-	    	json=new JSONObject("{name:{text:'GitHub'}, icon:{image_url:'https://cdn0.iconfinder.com/data/icons/octicons/1024/mark-github-128.png'}, label:{visible:false} }");    	
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,13,json.toString()});
-	        
-	    	json=new JSONObject("{name:{text:'User'}, icon:{ }, label:{visible:false} }");
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,14,json.toString()});
-	        
-	    	json=new JSONObject("{name:{text:'Space 66'}, icon:{image_url:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO6MFvj2tMPUoOSbUnbHFFuSqSMEkBt0Y17oPpcH8h2vpZG5S'}, label:{visible:false} }");    	
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,21,json.toString()});
-	    	
-	    	json=new JSONObject("{name:{visible:false}, icon:{image_res:"+R.drawable.ic_add_user+"}, label:{visible:false} }");    	
-	    	matrixcursor.addRow(new Object[]{++_id,CursorItemHolderGridView.TYPE_GRIDVIEW_ITEM,22,json.toString()});
-	    	
-	    	
-    	}catch(JSONException e){
-    		Log.e(TAG, "createGridViewCursor JSONException e="+e);
-    	}
-    	
-    	return matrixcursor;
-    }
-    
-//--------------Adapter Callbacks----------------------
-     
-	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		switch(adapter.getType(adapter.getCursor())){
-		
-		case TYPE_LINK_USER:{
-			int user_id=adapter.getKey(adapter.getCursor());
-			
-			toast("TYPE_LINK_USER item clicked key="+user_id);
-			
-		}break;
-		
-		case TYPE_LINK_USER_GIT:{
-			int group_id=adapter.getKey(adapter.getCursor());
-			
-			toast("GOD ITEM CLICKED");
-			
-		}break;
-		
-		case TYPE_LINK_GROUP:{
-			int group_id=adapter.getKey(adapter.getCursor());
-			
-			toast("TYPE_LINK_GROUP item clicked key="+group_id);
-			
-		}break;
-		
-		case TYPE_TEXT:
-		case TYPE_TEXT_CLICKABLE:{
-			int key=adapter.getKey(adapter.getCursor());
-			
-			toast("TYPE_TEXT_CLICKABLE item clicked key="+key);
-			
-		}break;
-		
-		case TYPE_TEXT_UPLOADER:{
-			int key=adapter.getKey(adapter.getCursor());
-			
-			toast("Uploading photo to server key="+key);
-			
-		}break;
-		
-		
-		}
-		
+//------------Network Methods--------------------------------
+
+	public void downloadListing(){
+
+    	if(menu_reload!=null)
+    		menu_reload.setVisible(false);
+
+		Connection.protocolConnection(getActivity(), getFragmentManager(),R.id.main_container, new Connection.ProtocolListener(){
+			@Override
+			public void isCompleted() {
+				//??? ??????? ????????? ?????????. ???????? ????????
+				doGetListingRequest(getActivity(),url,getFragmentManager(),R.id.main_container);
+			}
+
+			@Override
+			public void onCanceled() {
+				//???????????? ????? "Cancel". ????????? ???? ? ??? ?????? ??????
+				if(adapter.getCursor()==null)
+					getActivity().finish();
+			}
+		});
 	}
 
-	@Override
-	public void onClick(View v) {
-		
-		if(v.getTag(R.id.details_item_link_button)!=null){
-			int key=(Integer)v.getTag(R.id.details_item_link_button);
-			
-			toast("Button clicked tag="+v.getTag()+" key="+key);
-			
-		}
-		
-		if(v.getTag(R.id.details_item_button_button)!=null){
-			int key=(Integer)v.getTag(R.id.details_item_button_button);
-			
-			toast("Button clicked tag="+v.getTag()+" key="+key);
-			
-		}
-		
-		if(v.getTag(R.id.details_item_preview_imageview)!=null){
-			int key=(Integer)v.getTag(R.id.details_item_preview_imageview);
-			
-			toast("Preview image clicked");
-			
-		}
-	}
-	
-//-----------------------Utilites--------------------------
-	
-	private void toast(String msg){
-		Log.d(TAG, msg);
-		Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+	public void doGetListingRequest(final Context context, final String url, final FragmentManager fragmentManager, final int container) {
+
+		showProgressBar();
+
+		StringRequest stringrequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+
+			@Override
+			public void onResponse(String response) {
+
+				Log.d(TAG, "doRequestToServer onResponse response=");
+
+				try {
+					JSONObject json=new JSONObject(response);
+					JSONArray data=json.getJSONArray("data");
+
+					adapter.changeCursor(getCursorForAdapter(data));
+
+
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				if(menu_reload!=null)
+					menu_reload.setVisible(true);
+
+				hideProgressBar();
+
+			}
+
+		}, new Response.ErrorListener() {
+
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.d(TAG, "doRequestToServer onErrorResponse error=" + error.toString());
+
+				if(menu_reload!=null)
+					menu_reload.setVisible(true);
+
+				hideProgressBar();
+			}
+		});
+
+
+		String tag_stringrequest ="doRequestToServer_"+url;
+
+		stringrequest.setTag(tag_stringrequest);
+		Volley.newRequestQueue(context.getApplicationContext()).add(stringrequest);
+
 	}
 
+//--------------ProgressBar-----------------
+
+	public void showProgressBar(){
+		getActivity().findViewById(R.id.progressbar_layout).setVisibility(View.VISIBLE);
+	}
+
+	public void hideProgressBar(){
+		getActivity().findViewById(R.id.progressbar_layout).setVisibility(View.GONE);
+	}
+
+	public void showDialogDetails(JSONObject json){
+
+		FragmentDetails f=FragmentDetails.newInstance(json);
+
+		f.setStyle(STYLE_NO_TITLE,0);
+		f.show(getFragmentManager(),"FragmentDetails");
+
+
+	}
 }

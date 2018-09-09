@@ -3,9 +3,6 @@ package com.ivanov.tech.multipletypesadapter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorItemHolderLink;
-import com.ivanov.tech.multipletypesadapter.cursoradapter.CursorMultipleTypesAdapter;
-
 import android.content.Context;
 import android.util.Log;
 import android.util.TypedValue;

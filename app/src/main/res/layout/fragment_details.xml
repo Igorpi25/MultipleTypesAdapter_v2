@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:layout_gravity="center"
+	android:padding="32dp">
+
+	<LinearLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/details_name"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Name"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textColor="@android:color/black"
+			android:textSize="24dp"
+			android:textStyle="bold"
+			android:typeface="sans" />
+
+		<TextView
+			android:id="@+id/details_symbol"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/subs"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textColor="@android:color/black"
+			android:textSize="16dp"
+			android:typeface="sans" />
+
+		<TextView
+			android:id="@+id/details_website_slug"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/subs"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textColor="@android:color/black"
+			android:textSize="16dp"
+			android:typeface="sans" />
+
+		<TextView
+			android:id="@+id/details_id"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/subs"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textColor="@color/color_gray"
+			android:textSize="16dp"
+			android:typeface="sans" />
+	</LinearLayout>
+
+</RelativeLayout>

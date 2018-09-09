@@ -19,7 +19,9 @@ public class ItemHolderBitcoin extends CursorItemHolder{
 
 	private static final String TAG = ItemHolderBitcoin.class.getSimpleName();
 
-	TextView textview_name, textview_symbol, textview_website_slug;
+	TextView textview_id, textview_name, textview_symbol, textview_website_slug;
+
+	View background;
 
 	OnClickListener onclicklistener;
 
@@ -47,7 +49,10 @@ public class ItemHolderBitcoin extends CursorItemHolder{
                 .inflate(R.layout.item_bitcoin, parent, false);
 		
 		ItemHolderBitcoin itemholder=new ItemHolderBitcoin(view,context,onclicklistener);
-		
+
+		itemholder.background = view.findViewById(R.id.item_bitcoin_root);
+
+		itemholder.textview_id = (TextView) view.findViewById(R.id.item_bitcoin_id);
 		itemholder.textview_name = (TextView) view.findViewById(R.id.item_bitcoin_name);
 		itemholder.textview_symbol = (TextView) view.findViewById(R.id.item_bitcoin_symbol);
 		itemholder.textview_website_slug = (TextView) view.findViewById(R.id.item_bitcoin_website_slug);
@@ -66,10 +71,16 @@ public class ItemHolderBitcoin extends CursorItemHolder{
 			json = new JSONObject(CursorMultipleTypesAdapter.getValue(cursor));
 			
 			Log.d(TAG, "bindView json="+json);
-						
+
+			textview_id.setText(json.getInt("id")+":");
 			textview_name.setText(json.getString("name"));
 			textview_symbol.setText(json.getString("symbol"));
-			textview_website_slug.setText(json.getString("website_slug"));
+			textview_website_slug.setText("["+json.getString("website_slug")+"]");
+
+			if(cursor.getPosition() % 2 ==0)
+				background.setBackgroundResource(R.color.color_mat);
+			else
+				background.setBackgroundResource(R.color.color_white);
 
 			itemView.setTag(itemView.getId(), CursorMultipleTypesAdapter.getKey(cursor));
 									
