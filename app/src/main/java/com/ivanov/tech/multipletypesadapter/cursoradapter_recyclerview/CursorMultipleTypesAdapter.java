@@ -2,14 +2,9 @@ package com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview;
 
 import java.util.HashMap;
 
-import com.ivanov.tech.multipletypesadapter.ItemHolder;
-
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 
 public class CursorMultipleTypesAdapter extends CursorRecyclerViewAdapter<CursorItemHolder> {

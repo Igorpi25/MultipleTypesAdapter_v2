@@ -1,6 +1,4 @@
-package com.ivanov.tech.multipletypesadapter;
-
-import com.ivanov.tech.multipletypesadapter.demo.FragmentDemo;
+package com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview;
 
 import android.view.View;
 import android.view.ViewGroup;

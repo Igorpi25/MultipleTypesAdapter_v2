@@ -20,7 +20,9 @@ public class FragmentDetails extends DialogFragment{
 
 	JSONObject json;
 
+    //json: {id,name,symbol,website_slug}
     public static FragmentDetails newInstance(JSONObject json) {
+
     	FragmentDetails f = new FragmentDetails();
         f.json=json;
         return f;

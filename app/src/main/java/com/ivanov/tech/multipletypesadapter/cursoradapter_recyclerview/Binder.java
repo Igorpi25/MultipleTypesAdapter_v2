@@ -1,4 +1,4 @@
-package com.ivanov.tech.multipletypesadapter;
+package com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview;
 
 import java.util.Iterator;
 

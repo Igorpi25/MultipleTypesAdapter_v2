@@ -1,14 +1,14 @@
-package com.ivanov.tech.multipletypesadapter;
+package com.ivanov.tech.multipletypesadapter.cursoradapter_recyclerview;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
+
+import com.ivanov.tech.multipletypesadapter.R;
 
 public class BinderTextView extends Binder<TextView> {
 

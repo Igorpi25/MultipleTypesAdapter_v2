@@ -16,14 +16,12 @@ import com.ivanov.tech.multipletypesadapter.R;
 
 import android.content.Context;
 
-import android.content.DialogInterface;
 import android.database.MatrixCursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -35,8 +33,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Toast;
 
 public class FragmentDemo extends DialogFragment implements OnClickListener{
 	
@@ -50,7 +46,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
     
     protected CursorMultipleTypesAdapter adapter=null;
 
-	MenuItem menu_reload;
+	MenuItem menu_itme_reload;
     
     public static FragmentDemo newInstance() {
     	FragmentDemo f = new FragmentDemo();
@@ -66,19 +62,20 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
         
         recyclerview=(RecyclerView)view.findViewById(R.id.fragment_demo_rv_recyclerview);
 
+        //??????? ????????? RecyclerView, ?????? ??????????? ?????????
 		LinearLayoutManager layoutmanager=new LinearLayoutManager(recyclerview.getContext());
 		layoutmanager.setInitialPrefetchItemCount(100);
 		layoutmanager.setItemPrefetchEnabled(true);
-
         recyclerview.setLayoutManager(layoutmanager);
-
 		recyclerview.setHasFixedSize(true);
 
         adapter=new CursorMultipleTypesAdapter(getActivity(),null);
       
-        //Prepare map of types and set listeners for them. There are different ways in which you can define ItemHolder      
+        //????? ???????????? ?????? ?????? https://github.com/igorpi25/multipletypesadapter
         adapter.addItemHolder(TYPE_ITEM_BITCOIN, new ItemHolderBitcoin(getActivity(),this));
-		adapter.setHasStableIds(true);
+
+		//??????????? ?????? ????????
+        adapter.setHasStableIds(true);
 
         recyclerview.setAdapter(adapter);
 
@@ -86,7 +83,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 		((AppCompatActivity) getActivity()).getSupportActionBar().show();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			//getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+			//?????? ??????? ??? ? ??? ????
 			getActivity().getWindow().setStatusBarColor(getActivity().getColor(R.color.color_primary_dark));
 		}
 
@@ -97,6 +94,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 	public void onStart(){
     	super.onStart();
 
+    	//?????? ????????? ? ??????????? "????????"
 		downloadListing();
 
 	}
@@ -105,7 +103,8 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.menu_demo, menu);
 
-		menu_reload = menu.findItem(R.id.menu_reload);
+		//?????? "Reload" ? ????, ????? ??? ????????? ????????? ? ?????????? ??????
+		menu_itme_reload = menu.findItem(R.id.menu_reload);
 
 		super.onCreateOptionsMenu(menu, inflater);
 	}
@@ -116,7 +115,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 		switch (item.getItemId()) {
 			case R.id.menu_reload:
 
-				downloadListing();
+				downloadListing();//????????? ????????? ????????, ? ?????????? ??????
 
 				return true;
 			default:
@@ -127,15 +126,18 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 	@Override
 	public void onClick(View v) {
 
-
-
+    	//????? ?? ????? ???? ?? ???????? ??????
 		try {
 
-			adapter.getCursor().moveToPosition((Integer)v.getTag(v.getId()));
+			//??? ??? data-source ????????, ? ????? ??????, ???????? Cursor ?? ????????? ???????
+			int clicked_item_position=(Integer)v.getTag(v.getId());
+			adapter.getCursor().moveToPosition(clicked_item_position);
 
+			//getValue - ??????????? ??????? ??? ???????????? ???????? ??????? value ?? Cursor
 			JSONObject json=new JSONObject(CursorMultipleTypesAdapter.getValue(adapter.getCursor()));
 
-			showDialogDetails(json);
+			showDialogDetails(json);//?????????? ?????? ? ???????????, ?? ???????? ?????? ????????
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -145,14 +147,13 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 
 //------------Preparing cursor----------------------------
 
+
     protected MatrixCursor getCursorForAdapter(JSONArray data) throws JSONException{
+		//????? ?? ???????? ???????? JSONArray ? Cursor, ??? ?????????? ???????? ? ???????
 
     	MatrixCursor matrixcursor=new MatrixCursor(new String[]{adapter.COLUMN_ID, adapter.COLUMN_TYPE, adapter.COLUMN_KEY, adapter.COLUMN_VALUE});    	
     	
     	JSONObject json;    	
-
-    	//---------Card Preview ------------
-
 
 		for(int i=0;i<data.length();i++) {
 			json=data.getJSONObject(i);
@@ -167,9 +168,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 
 	public void downloadListing(){
 
-    	if(menu_reload!=null)
-    		menu_reload.setVisible(false);
-
+		//????? ???????????? ?????? ?????? https://github.com/igorpi25/connection
 		Connection.protocolConnection(getActivity(), getFragmentManager(),R.id.main_container, new Connection.ProtocolListener(){
 			@Override
 			public void isCompleted() {
@@ -179,7 +178,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 
 			@Override
 			public void onCanceled() {
-				//???????????? ????? "Cancel". ????????? ???? ? ??? ?????? ??????
+				//???????????? ????? "Cancel". ????????? ???? ? ??? ?????? ??????(?.?. ??????? ?? ???? ??? ?? ??????????)
 				if(adapter.getCursor()==null)
 					getActivity().finish();
 			}
@@ -188,6 +187,9 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 
 	public void doGetListingRequest(final Context context, final String url, final FragmentManager fragmentManager, final int container) {
 
+		//??????? ?????????? ? ????? "Loading"
+		if(menu_itme_reload !=null)
+			menu_itme_reload.setVisible(false);
 		showProgressBar();
 
 		StringRequest stringrequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -207,9 +209,10 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
-				if(menu_reload!=null)
-					menu_reload.setVisible(true);
 
+				//????????????? ????????? ??????????
+				if(menu_itme_reload !=null)
+					menu_itme_reload.setVisible(true);
 				hideProgressBar();
 
 			}
@@ -220,9 +223,9 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 			public void onErrorResponse(VolleyError error) {
 				Log.d(TAG, "doRequestToServer onErrorResponse error=" + error.toString());
 
-				if(menu_reload!=null)
-					menu_reload.setVisible(true);
-
+				//????????????? ????????? ??????????
+				if(menu_itme_reload !=null)
+					menu_itme_reload.setVisible(true);
 				hideProgressBar();
 			}
 		});
@@ -235,7 +238,7 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 
 	}
 
-//--------------ProgressBar-----------------
+//--------------UI-----------------
 
 	public void showProgressBar(){
 		getActivity().findViewById(R.id.progressbar_layout).setVisibility(View.VISIBLE);
@@ -246,12 +249,12 @@ public class FragmentDemo extends DialogFragment implements OnClickListener{
 	}
 
 	public void showDialogDetails(JSONObject json){
+		//?????? ? ??????? ???????? ???????? ??????
 
 		FragmentDetails f=FragmentDetails.newInstance(json);
 
 		f.setStyle(STYLE_NO_TITLE,0);
 		f.show(getFragmentManager(),"FragmentDetails");
-
 
 	}
 }
